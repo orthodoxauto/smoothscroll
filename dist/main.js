@@ -70,7 +70,6 @@ const smoothscroll = (el) => {
         const x = scrollableParent.scrollLeft + clientRect.left - parentRect.left;
         const y = scrollableParent.scrollTop + clientRect.top - parentRect.top;
         if (CSS.supports('scroll-behavior', 'smooth')) {
-            console.log('Hello');
             scrollableParent.scrollTo({
                 top: y,
                 left: x,
