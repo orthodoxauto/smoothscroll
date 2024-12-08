@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Document</title>
+        <style>
+            #parent {
+                height: 600px;
+                overflow-y: auto;
+                background-color: aliceblue;
+            }
+            .child {
+                border: 1px solid red;
+            }
+        </style>
+    </head>
+    <body>
+        <button>Scroll</button>
+        <div id="parent"></div>
+
+        <script type="module">
+            import { smoothscroll } from '../dist/main.js'
+
+            const container = document.getElementById('parent')
+
+            for (let i = 0; i < 100; i++) {
+                const child = document.createElement('div')
+                child.className = 'child'
+                child.innerText = `Item #${i}`
+                if (i === 50) {
+                    child.id = 'child'
+                }
+                container.appendChild(child)
+            }
+
+            document.getElementsByTagName('button')[0].onclick = () => {
+                smoothscroll(document.getElementById('child'))
+            }
+        </script>
+    </body>
+</html>
