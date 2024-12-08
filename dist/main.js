@@ -67,14 +67,25 @@ const smoothscroll = (el) => {
         const clientRect = el.getBoundingClientRect();
         const startX = scrollableParent === document.body ? scrollX : scrollableParent.scrollLeft;
         const startY = scrollableParent === document.body ? scrollY : scrollableParent.scrollTop;
+        const x = scrollableParent.scrollLeft + clientRect.left - parentRect.left;
+        const y = scrollableParent.scrollTop + clientRect.top - parentRect.top;
+        if (CSS.supports('scroll-behavior', 'smooth')) {
+            console.log('Hello');
+            scrollableParent.scrollTo({
+                top: y,
+                left: x,
+                behavior: 'smooth'
+            });
+            return;
+        }
         const startTime = now();
         step({
             scrollableParent,
             scrollable: el,
             startX,
             startY,
-            x: scrollableParent.scrollLeft + clientRect.left - parentRect.left,
-            y: scrollableParent.scrollTop + clientRect.top - parentRect.top,
+            x,
+            y,
             startTime
         });
     };
