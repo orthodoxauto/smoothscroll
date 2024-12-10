@@ -1,6 +1,7 @@
 // https://github.com/iamdustan/smoothscroll/
 const SCROLL_TIME = 468;
-const smoothscroll = (el) => {
+const smoothscroll = (el, options) => {
+    const { fallbackToNearest } = options ?? {};
     const now = performance && performance.now ? performance.now.bind(performance) : Date.now;
     const ease = (k) => 0.5 * (1 - Math.cos(Math.PI * k));
     const isMicrosoftBrowser = (userAgent) => {
@@ -13,6 +14,9 @@ const smoothscroll = (el) => {
     };
     const ROUNDING_TOLERANCE = isMicrosoftBrowser(navigator.userAgent) ? 1 : 0;
     const hasScrollableSpace = (el, axis) => {
+        if (!fallbackToNearest) {
+            return true;
+        }
         if (axis === 'Y') {
             return el.clientHeight + ROUNDING_TOLERANCE < el.scrollHeight;
         }

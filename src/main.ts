@@ -1,10 +1,15 @@
 // https://github.com/iamdustan/smoothscroll/
 
 type Axis = 'X' | 'Y'
+type Options = Partial<{
+    fallbackToNearest: boolean
+}>
 
 const SCROLL_TIME = 468
 
-export const smoothscroll = (el?: HTMLElement | null) => {
+export const smoothscroll = (el?: HTMLElement | null, options?: Options) => {
+    const { fallbackToNearest } = options ?? {}
+
     const now = performance && performance.now ? performance.now.bind(performance) : Date.now
 
     const ease = (k: number) => 0.5 * (1 - Math.cos(Math.PI * k))
@@ -25,6 +30,10 @@ export const smoothscroll = (el?: HTMLElement | null) => {
     const ROUNDING_TOLERANCE = isMicrosoftBrowser(navigator.userAgent) ? 1 : 0
 
     const hasScrollableSpace = (el: HTMLElement, axis: Axis) => {
+        if (!fallbackToNearest) {
+            return true
+        }
+
         if (axis === 'Y') {
             return el.clientHeight + ROUNDING_TOLERANCE < el.scrollHeight
         }
