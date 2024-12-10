@@ -1,13 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="overflow-y: scroll">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Document</title>
         <style>
-            #parent {
-                height: 600px;
-                overflow-y: auto;
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                padding: 0;
+                margin: 0;
+            }
+            body {
                 background-color: aliceblue;
             }
             .child {
