@@ -110,8 +110,8 @@ export const smoothscroll = (el?: HTMLElement | null, options?: Options) => {
         const startX = scrollableParent === document.body ? scrollX : scrollableParent.scrollLeft
         const startY = scrollableParent === document.body ? scrollY : scrollableParent.scrollTop
 
-        const x = startX + clientRect.left - parentRect.left
-        const y = startY + clientRect.top - parentRect.top
+        const x = el === document.body ? 0 : startX + clientRect.left - parentRect.left
+        const y = el === document.body ? 0 : startY + clientRect.top - parentRect.top
 
         if (CSS.supports('scroll-behavior', 'smooth')) {
             if (scrollableParent === document.body) {
