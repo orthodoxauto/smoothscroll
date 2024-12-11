@@ -10,7 +10,7 @@ type Options = Partial<{
 const SCROLL_TIME = 468
 
 export const smoothscroll = (el?: HTMLElement | null, options?: Options) => {
-    const { fallbackToNearest, offsetX = 0, offsetY = 0 } = options ?? {}
+    const { fallbackToNearest } = options ?? {}
 
     const now = performance && performance.now ? performance.now.bind(performance) : Date.now
 
@@ -105,6 +105,21 @@ export const smoothscroll = (el?: HTMLElement | null, options?: Options) => {
 
     const scroll = () => {
         if (!el) return
+
+        const offsetX =
+            options?.offsetX ??
+            Number(
+                getComputedStyle(document.body)
+                    .getPropertyValue('--ss-scroll-offset-x')
+                    .replace('px', '')
+            )
+        const offsetY =
+            options?.offsetY ??
+            Number(
+                getComputedStyle(document.body)
+                    .getPropertyValue('--ss-scroll-offset-y')
+                    .replace('px', '')
+            )
 
         const scrollableParent = findScrollableParent(el)
 
