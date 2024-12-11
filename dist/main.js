@@ -4,6 +4,7 @@ const smoothscroll = (el, options) => {
     const { fallbackToNearest } = options ?? {};
     const now = performance && performance.now ? performance.now.bind(performance) : Date.now;
     const ease = (k) => 0.5 * (1 - Math.cos(Math.PI * k));
+    const isBody = (el) => el === document.body;
     const isMicrosoftBrowser = (userAgent) => {
         const userAgentPatterns = ['MSIE ', 'Trident/', 'Edge/'];
         return new RegExp(userAgentPatterns.join('|')).test(userAgent);
@@ -49,7 +50,7 @@ const smoothscroll = (el, options) => {
         value = ease(elapsed);
         currentX = context.startX + (context.x - context.startX) * value;
         currentY = context.startY + (context.y - context.startY) * value;
-        if (context.scrollableParent === document.body) {
+        if (isBody(context.scrollableParent)) {
             scrollTo(currentX, currentY);
         }
         else {
@@ -67,14 +68,16 @@ const smoothscroll = (el, options) => {
         if (!el)
             return;
         const scrollableParent = findScrollableParent(el);
-        const parentRect = scrollableParent.getBoundingClientRect();
+        const parentRect = isBody(scrollableParent)
+            ? new DOMRectReadOnly(0, 0, 0, 0)
+            : scrollableParent.getBoundingClientRect();
         const clientRect = el.getBoundingClientRect();
-        const startX = scrollableParent === document.body ? scrollX : scrollableParent.scrollLeft;
-        const startY = scrollableParent === document.body ? scrollY : scrollableParent.scrollTop;
-        const x = el === document.body ? 0 : startX + clientRect.left - parentRect.left;
-        const y = el === document.body ? 0 : startY + clientRect.top - parentRect.top;
+        const startX = isBody(scrollableParent) ? scrollX : scrollableParent.scrollLeft;
+        const startY = isBody(scrollableParent) ? scrollY : scrollableParent.scrollTop;
+        const x = isBody(el) ? 0 : startX + clientRect.left - parentRect.left;
+        const y = isBody(el) ? 0 : startY + clientRect.top - parentRect.top;
         if (CSS.supports('scroll-behavior', 'smooth')) {
-            if (scrollableParent === document.body) {
+            if (isBody(scrollableParent)) {
                 scrollTo({
                     top: y,
                     left: x,
