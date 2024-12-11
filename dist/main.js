@@ -1,7 +1,7 @@
 // https://github.com/iamdustan/smoothscroll/
 const SCROLL_TIME = 468;
 const smoothscroll = (el, options) => {
-    const { fallbackToNearest, offsetX = 0, offsetY = 0 } = options ?? {};
+    const { fallbackToNearest } = options ?? {};
     const now = performance && performance.now ? performance.now.bind(performance) : Date.now;
     const ease = (k) => 0.5 * (1 - Math.cos(Math.PI * k));
     const isBody = (el) => el === document.body;
@@ -67,6 +67,14 @@ const smoothscroll = (el, options) => {
     const scroll = () => {
         if (!el)
             return;
+        const offsetX = options?.offsetX ??
+            Number(getComputedStyle(document.body)
+                .getPropertyValue('--ss-scroll-offset-x')
+                .replace('px', ''));
+        const offsetY = options?.offsetY ??
+            Number(getComputedStyle(document.body)
+                .getPropertyValue('--ss-scroll-offset-y')
+                .replace('px', ''));
         const scrollableParent = findScrollableParent(el);
         const parentRect = isBody(scrollableParent)
             ? new DOMRectReadOnly(0, 0, 0, 0)
