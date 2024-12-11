@@ -1,6 +1,6 @@
 {
     "name": "@orthodoxauto/smoothscroll",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "description": "Smoothly scroll elements into view",
     "type": "module",
     "main": "dist/main.js",
