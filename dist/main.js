@@ -1,7 +1,7 @@
 // https://github.com/iamdustan/smoothscroll/
 const SCROLL_TIME = 468;
 const smoothscroll = (el, options) => {
-    const { fallbackToNearest } = options ?? {};
+    const { fallbackToNearest, offsetX = 0, offsetY = 0 } = options ?? {};
     const now = performance && performance.now ? performance.now.bind(performance) : Date.now;
     const ease = (k) => 0.5 * (1 - Math.cos(Math.PI * k));
     const isBody = (el) => el === document.body;
@@ -74,8 +74,8 @@ const smoothscroll = (el, options) => {
         const clientRect = el.getBoundingClientRect();
         const startX = isBody(scrollableParent) ? scrollX : scrollableParent.scrollLeft;
         const startY = isBody(scrollableParent) ? scrollY : scrollableParent.scrollTop;
-        const x = isBody(el) ? 0 : startX + clientRect.left - parentRect.left;
-        const y = isBody(el) ? 0 : startY + clientRect.top - parentRect.top;
+        const x = isBody(el) ? 0 : startX + clientRect.left - parentRect.left - offsetX;
+        const y = isBody(el) ? 0 : startY + clientRect.top - parentRect.top - offsetY;
         if (CSS.supports('scroll-behavior', 'smooth')) {
             if (isBody(scrollableParent)) {
                 scrollTo({

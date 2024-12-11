@@ -3,12 +3,14 @@
 type Axis = 'X' | 'Y'
 type Options = Partial<{
     fallbackToNearest: boolean
+    offsetX: number
+    offsetY: number
 }>
 
 const SCROLL_TIME = 468
 
 export const smoothscroll = (el?: HTMLElement | null, options?: Options) => {
-    const { fallbackToNearest } = options ?? {}
+    const { fallbackToNearest, offsetX = 0, offsetY = 0 } = options ?? {}
 
     const now = performance && performance.now ? performance.now.bind(performance) : Date.now
 
@@ -114,8 +116,8 @@ export const smoothscroll = (el?: HTMLElement | null, options?: Options) => {
         const startX = isBody(scrollableParent) ? scrollX : scrollableParent.scrollLeft
         const startY = isBody(scrollableParent) ? scrollY : scrollableParent.scrollTop
 
-        const x = isBody(el) ? 0 : startX + clientRect.left - parentRect.left
-        const y = isBody(el) ? 0 : startY + clientRect.top - parentRect.top
+        const x = isBody(el) ? 0 : startX + clientRect.left - parentRect.left - offsetX
+        const y = isBody(el) ? 0 : startY + clientRect.top - parentRect.top - offsetY
 
         if (CSS.supports('scroll-behavior', 'smooth')) {
             if (isBody(scrollableParent)) {
