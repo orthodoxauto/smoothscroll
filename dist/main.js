@@ -1,5 +1,7 @@
 // https://github.com/iamdustan/smoothscroll/
 const SCROLL_TIME = 468;
+const OFFSET_X_REGEX = /--ss-scroll-offset-x:\s*(\d+(?:\.\d+)?(?:rem|px))/;
+const OFFSET_Y_REGEX = /--ss-scroll-offset-y:\s*(\d+(?:\.\d+)?(?:rem|px))/;
 const smoothscroll = (el, options) => {
     const { fallbackToNearest } = options ?? {};
     const now = performance && performance.now ? performance.now.bind(performance) : Date.now;
@@ -10,10 +12,10 @@ const smoothscroll = (el, options) => {
         return new RegExp(userAgentPatterns.join('|')).test(userAgent);
     };
     const convertToPx = (value) => {
-        if (value.includes('px')) {
+        if (value?.includes('px')) {
             return Number(value.replace('px', ''));
         }
-        else if (value.includes('rem')) {
+        else if (value?.includes('rem')) {
             return (Number(value.replace('rem', '')) *
                 parseFloat(getComputedStyle(document.documentElement).fontSize));
         }
@@ -78,10 +80,10 @@ const smoothscroll = (el, options) => {
         if (!el)
             return;
         const scrollableParent = findScrollableParent(el);
-        const offsetX = options?.offsetX ??
-            convertToPx(getComputedStyle(scrollableParent).getPropertyValue('--ss-scroll-offset-x'));
-        const offsetY = options?.offsetY ??
-            convertToPx(getComputedStyle(scrollableParent).getPropertyValue('--ss-scroll-offset-y'));
+        const scrollableParentStyle = scrollableParent.getAttribute('style') ?? '';
+        // getComputedStyle().getPropertyValue() inherits value so resort to good ol' regex.
+        const offsetX = options?.offsetX ?? convertToPx(OFFSET_X_REGEX.exec(scrollableParentStyle)?.[1]);
+        const offsetY = options?.offsetY ?? convertToPx(OFFSET_Y_REGEX.exec(scrollableParentStyle)?.[1]);
         const parentRect = isBody(scrollableParent)
             ? new DOMRectReadOnly(0, 0, 0, 0)
             : scrollableParent.getBoundingClientRect();
