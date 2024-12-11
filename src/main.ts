@@ -23,6 +23,19 @@ export const smoothscroll = (el?: HTMLElement | null, options?: Options) => {
         return new RegExp(userAgentPatterns.join('|')).test(userAgent)
     }
 
+    const convertToPx = (value: string) => {
+        if (value.includes('px')) {
+            return Number(value.replace('px', ''))
+        } else if (value.includes('rem')) {
+            return (
+                Number(value.replace('rem', '')) *
+                parseFloat(getComputedStyle(document.documentElement).fontSize)
+            )
+        }
+
+        return 0
+    }
+
     const canOverflow = (el: HTMLElement, axis: Axis) => {
         const overflowValue = getComputedStyle(el, null)[
             ('overflow' + axis) as keyof CSSStyleDeclaration
@@ -110,18 +123,10 @@ export const smoothscroll = (el?: HTMLElement | null, options?: Options) => {
 
         const offsetX =
             options?.offsetX ??
-            Number(
-                getComputedStyle(scrollableParent)
-                    .getPropertyValue('--ss-scroll-offset-x')
-                    .replace('px', '') ?? 0
-            )
+            convertToPx(getComputedStyle(scrollableParent).getPropertyValue('--ss-scroll-offset-x'))
         const offsetY =
             options?.offsetY ??
-            Number(
-                getComputedStyle(scrollableParent)
-                    .getPropertyValue('--ss-scroll-offset-y')
-                    .replace('px', '') ?? 0
-            )
+            convertToPx(getComputedStyle(scrollableParent).getPropertyValue('--ss-scroll-offset-y'))
 
         const parentRect = isBody(scrollableParent)
             ? new DOMRectReadOnly(0, 0, 0, 0)
