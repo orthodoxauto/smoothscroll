@@ -67,15 +67,19 @@ const smoothscroll = (el, options) => {
     const scroll = () => {
         if (!el)
             return;
-        const offsetX = options?.offsetX ??
-            Number(getComputedStyle(document.body)
-                .getPropertyValue('--ss-scroll-offset-x')
-                .replace('px', ''));
-        const offsetY = options?.offsetY ??
-            Number(getComputedStyle(document.body)
-                .getPropertyValue('--ss-scroll-offset-y')
-                .replace('px', ''));
         const scrollableParent = findScrollableParent(el);
+        const offsetX = options?.offsetX ??
+            (isBody(scrollableParent)
+                ? Number(getComputedStyle(document.body)
+                    .getPropertyValue('--ss-scroll-offset-x')
+                    .replace('px', ''))
+                : 0);
+        const offsetY = options?.offsetY ??
+            (isBody(scrollableParent)
+                ? Number(getComputedStyle(document.body)
+                    .getPropertyValue('--ss-scroll-offset-y')
+                    .replace('px', ''))
+                : 0);
         const parentRect = isBody(scrollableParent)
             ? new DOMRectReadOnly(0, 0, 0, 0)
             : scrollableParent.getBoundingClientRect();
