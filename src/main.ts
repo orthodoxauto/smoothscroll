@@ -106,22 +106,26 @@ export const smoothscroll = (el?: HTMLElement | null, options?: Options) => {
     const scroll = () => {
         if (!el) return
 
+        const scrollableParent = findScrollableParent(el)
+
         const offsetX =
             options?.offsetX ??
-            Number(
-                getComputedStyle(document.body)
-                    .getPropertyValue('--ss-scroll-offset-x')
-                    .replace('px', '')
-            )
+            (isBody(scrollableParent)
+                ? Number(
+                      getComputedStyle(document.body)
+                          .getPropertyValue('--ss-scroll-offset-x')
+                          .replace('px', '')
+                  )
+                : 0)
         const offsetY =
             options?.offsetY ??
-            Number(
-                getComputedStyle(document.body)
-                    .getPropertyValue('--ss-scroll-offset-y')
-                    .replace('px', '')
-            )
-
-        const scrollableParent = findScrollableParent(el)
+            (isBody(scrollableParent)
+                ? Number(
+                      getComputedStyle(document.body)
+                          .getPropertyValue('--ss-scroll-offset-y')
+                          .replace('px', '')
+                  )
+                : 0)
 
         const parentRect = isBody(scrollableParent)
             ? new DOMRectReadOnly(0, 0, 0, 0)
