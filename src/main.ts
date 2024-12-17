@@ -11,21 +11,27 @@ const SCROLL_TIME = 468
 const OFFSET_X_REGEX = /--ss-scroll-offset-x:\s*(\d+(?:\.\d+)?(?:rem|px))/
 const OFFSET_Y_REGEX = /--ss-scroll-offset-y:\s*(\d+(?:\.\d+)?(?:rem|px))/
 
-export const smoothscroll = (el?: HTMLElement | null, options?: Options) => {
-    const { fallbackToNearest } = options ?? {}
+export class SmoothScroll {
+    private offsetX = 0
+    private offsetY = 0
+    private fallbackToNearest = false
 
-    const now = performance && performance.now ? performance.now.bind(performance) : Date.now
-
-    const ease = (k: number) => 0.5 * (1 - Math.cos(Math.PI * k))
-
-    const isBody = (el: Element) => el === document.body
-
-    const isMicrosoftBrowser = (userAgent: string) => {
-        const userAgentPatterns = ['MSIE ', 'Trident/', 'Edge/']
-        return new RegExp(userAgentPatterns.join('|')).test(userAgent)
+    constructor(options?: Options) {
+        this.offsetX = options?.offsetX ?? 0
+        this.offsetY = options?.offsetY ?? 0
+        this.fallbackToNearest = options?.fallbackToNearest ?? false
     }
 
-    const convertToPx = (value?: string | null) => {
+    private Now = performance && performance.now ? performance.now.bind(performance) : Date.now
+
+    private Ease = (k: number) => 0.5 * (1 - Math.cos(Math.PI * k))
+
+    private IsBody = (el: Element) => el === document.body
+
+    private IsMicrosoftBrowser = (userAgent: string) =>
+        new RegExp(['MSIE ', 'Trident/', 'Edge/'].join('|')).test(userAgent)
+
+    private ConvertToPx = (value?: string | null) => {
         if (value?.includes('px')) {
             return Number(value.replace('px', ''))
         } else if (value?.includes('rem')) {
@@ -38,7 +44,7 @@ export const smoothscroll = (el?: HTMLElement | null, options?: Options) => {
         return 0
     }
 
-    const canOverflow = (el: HTMLElement, axis: Axis) => {
+    private CanOverflow = (el: HTMLElement, axis: Axis) => {
         const overflowValue = getComputedStyle(el, null)[
             ('overflow' + axis) as keyof CSSStyleDeclaration
         ]
@@ -46,10 +52,10 @@ export const smoothscroll = (el?: HTMLElement | null, options?: Options) => {
         return overflowValue === 'auto' || overflowValue === 'scroll'
     }
 
-    const ROUNDING_TOLERANCE = isMicrosoftBrowser(navigator.userAgent) ? 1 : 0
+    private HasScrollableSpace = (el: HTMLElement, axis: Axis) => {
+        const ROUNDING_TOLERANCE = this.IsMicrosoftBrowser(navigator.userAgent) ? 1 : 0
 
-    const hasScrollableSpace = (el: HTMLElement, axis: Axis) => {
-        if (!fallbackToNearest) {
+        if (!this.fallbackToNearest) {
             return true
         }
 
@@ -64,31 +70,30 @@ export const smoothscroll = (el?: HTMLElement | null, options?: Options) => {
         return false
     }
 
-    const isScrollable = (el: HTMLElement) => {
-        const isScrollableY = hasScrollableSpace(el, 'Y') && canOverflow(el, 'Y')
-        const isScrollableX = hasScrollableSpace(el, 'X') && canOverflow(el, 'X')
+    private IsScrollable = (el: HTMLElement) => {
+        const isScrollableY = this.HasScrollableSpace(el, 'Y') && this.CanOverflow(el, 'Y')
+        const isScrollableX = this.HasScrollableSpace(el, 'X') && this.CanOverflow(el, 'X')
 
         return isScrollableY || isScrollableX
     }
 
-    const findScrollableParent = (el: HTMLElement) => {
-        while (el !== document.body && isScrollable(el) === false) {
+    private FindScrollableParent = (el: HTMLElement) => {
+        while (el !== document.body && this.IsScrollable(el) === false) {
             if (el.parentElement) el = el.parentElement
         }
 
         return el
     }
 
-    const step = (context: {
+    private Step = (context: {
         scrollableParent: HTMLElement
-        scrollable: HTMLElement
         startX: number
         startY: number
         x: number
         y: number
         startTime: number
     }) => {
-        const time = now()
+        const time = this.Now()
         let value = 0
         let currentX = 0
         let currentY = 0
@@ -98,12 +103,12 @@ export const smoothscroll = (el?: HTMLElement | null, options?: Options) => {
         elapsed = elapsed > 1 ? 1 : elapsed
 
         // apply easing to elapsed time
-        value = ease(elapsed)
+        value = this.Ease(elapsed)
 
         currentX = context.startX + (context.x - context.startX) * value
         currentY = context.startY + (context.y - context.startY) * value
 
-        if (isBody(context.scrollableParent)) {
+        if (this.IsBody(context.scrollableParent)) {
             scrollTo(currentX, currentY)
         } else {
             context.scrollableParent.scrollLeft = currentX
@@ -112,37 +117,34 @@ export const smoothscroll = (el?: HTMLElement | null, options?: Options) => {
 
         // scroll more if we have not reached our destination
         if (currentX !== context.x || currentY !== context.y) {
-            requestAnimationFrame(() => {
-                step(context)
-            })
+            requestAnimationFrame(() => this.Step(context))
         }
     }
 
-    const scroll = () => {
-        if (!el) return
+    ScrollTo(el?: HTMLElement | null) {
+        const scrollableParent = el ? this.FindScrollableParent(el) : document.body
 
-        const scrollableParent = findScrollableParent(el)
+        const parentRect = this.IsBody(scrollableParent)
+            ? new DOMRectReadOnly(0, 0, 0, 0)
+            : scrollableParent.getBoundingClientRect()
+        const clientRect = el ? el.getBoundingClientRect() : new DOMRectReadOnly(0, 0, 0, 0)
+
+        const startX = this.IsBody(scrollableParent) ? scrollX : scrollableParent.scrollLeft
+        const startY = this.IsBody(scrollableParent) ? scrollY : scrollableParent.scrollTop
+
         const scrollableParentStyle = scrollableParent.getAttribute('style') ?? ''
 
         // getComputedStyle().getPropertyValue() inherits value so resort to good ol' regex.
         const offsetX =
-            options?.offsetX ?? convertToPx(OFFSET_X_REGEX.exec(scrollableParentStyle)?.[1])
+            this.offsetX || this.ConvertToPx(OFFSET_X_REGEX.exec(scrollableParentStyle)?.[1])
         const offsetY =
-            options?.offsetY ?? convertToPx(OFFSET_Y_REGEX.exec(scrollableParentStyle)?.[1])
+            this.offsetY || this.ConvertToPx(OFFSET_Y_REGEX.exec(scrollableParentStyle)?.[1])
 
-        const parentRect = isBody(scrollableParent)
-            ? new DOMRectReadOnly(0, 0, 0, 0)
-            : scrollableParent.getBoundingClientRect()
-        const clientRect = el.getBoundingClientRect()
-
-        const startX = isBody(scrollableParent) ? scrollX : scrollableParent.scrollLeft
-        const startY = isBody(scrollableParent) ? scrollY : scrollableParent.scrollTop
-
-        const x = isBody(el) ? 0 : startX + clientRect.left - parentRect.left - offsetX
-        const y = isBody(el) ? 0 : startY + clientRect.top - parentRect.top - offsetY
+        const x = el ? startX + clientRect.left - parentRect.left - offsetX : 0
+        const y = el ? startY + clientRect.top - parentRect.top - offsetY : 0
 
         if (CSS.supports('scroll-behavior', 'smooth')) {
-            if (isBody(scrollableParent)) {
+            if (this.IsBody(scrollableParent)) {
                 scrollTo({
                     top: y,
                     left: x,
@@ -158,11 +160,10 @@ export const smoothscroll = (el?: HTMLElement | null, options?: Options) => {
             return
         }
 
-        const startTime = now()
+        const startTime = this.Now()
 
-        step({
+        this.Step({
             scrollableParent,
-            scrollable: el,
             startX,
             startY,
             x,
@@ -171,5 +172,50 @@ export const smoothscroll = (el?: HTMLElement | null, options?: Options) => {
         })
     }
 
-    scroll()
+    ScrollIntoView(el?: HTMLElement | null) {
+        if (!el) return
+
+        const scrollableParent = this.FindScrollableParent(el)
+
+        const parentRect = this.IsBody(scrollableParent)
+            ? new DOMRectReadOnly(0, 0, innerWidth, innerHeight)
+            : scrollableParent.getBoundingClientRect()
+        const clientRect = el.getBoundingClientRect()
+
+        const startX = this.IsBody(scrollableParent) ? window.scrollX : scrollableParent.scrollLeft
+        const startY = this.IsBody(scrollableParent) ? window.scrollY : scrollableParent.scrollTop
+
+        let scrollDeltaX = 0
+        let scrollDeltaY = 0
+
+        if (clientRect.top < parentRect.top) {
+            scrollDeltaY = clientRect.top - parentRect.top - this.offsetY
+        } else if (clientRect.bottom > parentRect.bottom) {
+            scrollDeltaY = clientRect.bottom - parentRect.bottom + this.offsetY
+        }
+
+        if (clientRect.left < parentRect.left) {
+            scrollDeltaX = clientRect.left - parentRect.left - this.offsetX
+        } else if (clientRect.right > parentRect.right) {
+            scrollDeltaX = clientRect.right - parentRect.right + this.offsetX
+        }
+
+        if (scrollDeltaX === 0 && scrollDeltaY === 0) {
+            return
+        }
+
+        const x = startX + scrollDeltaX
+        const y = startY + scrollDeltaY
+
+        const startTime = this.Now()
+
+        this.Step({
+            scrollableParent,
+            startX,
+            startY,
+            x,
+            y,
+            startTime
+        })
+    }
 }

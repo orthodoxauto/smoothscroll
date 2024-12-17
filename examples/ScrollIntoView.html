@@ -42,7 +42,7 @@
         <div id="parent"></div>
 
         <script type="module">
-            import { smoothscroll } from '../dist/main.js'
+            import { SmoothScroll } from '../dist/main.js'
 
             const container = document.getElementById('parent')
 
@@ -57,7 +57,7 @@
             }
 
             document.getElementsByTagName('button')[0].onclick = () => {
-                smoothscroll(document.getElementById('child'))
+                new SmoothScroll().ScrollIntoView(document.getElementById('child'))
             }
         </script>
     </body>

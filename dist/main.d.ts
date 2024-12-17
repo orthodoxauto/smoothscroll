@@ -3,6 +3,23 @@ type Options = Partial<{
     offsetX: number;
     offsetY: number;
 }>;
-declare const smoothscroll: (el?: HTMLElement | null, options?: Options) => void;
+declare class SmoothScroll {
+    private offsetX;
+    private offsetY;
+    private fallbackToNearest;
+    constructor(options?: Options);
+    private Now;
+    private Ease;
+    private IsBody;
+    private IsMicrosoftBrowser;
+    private ConvertToPx;
+    private CanOverflow;
+    private HasScrollableSpace;
+    private IsScrollable;
+    private FindScrollableParent;
+    private Step;
+    ScrollTo(el?: HTMLElement | null): void;
+    ScrollIntoView(el?: HTMLElement | null): void;
+}
 
-export { smoothscroll };
+export { SmoothScroll };
