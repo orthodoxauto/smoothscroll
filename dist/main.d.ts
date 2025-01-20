@@ -19,7 +19,7 @@ declare class SmoothScroll {
     private FindScrollableParent;
     private Step;
     ScrollTo(el?: HTMLElement | null): void;
-    ScrollIntoView(el?: HTMLElement | null): void;
+    ScrollIntoView(el?: HTMLElement | null, center?: boolean): void;
 }
 
 export { SmoothScroll };

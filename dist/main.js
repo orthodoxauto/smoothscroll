@@ -184,7 +184,7 @@ class SmoothScroll {
             startTime
         });
     }
-    ScrollIntoView(el) {
+    ScrollIntoView(el, center = true) {
         if (!el)
             return;
         const scrollableParent = this.FindScrollableParent(el);
@@ -196,23 +196,50 @@ class SmoothScroll {
         const startY = this.IsBody(scrollableParent) ? window.scrollY : scrollableParent.scrollTop;
         let scrollDeltaX = 0;
         let scrollDeltaY = 0;
-        if (clientRect.top < parentRect.top) {
-            scrollDeltaY = clientRect.top - parentRect.top - this.offsetY;
+        if (center) {
+            const elementCenterX = clientRect.left + clientRect.width / 2;
+            const elementCenterY = clientRect.top + clientRect.height / 2;
+            const parentCenterX = parentRect.left + parentRect.width / 2;
+            const parentCenterY = parentRect.top + parentRect.height / 2;
+            scrollDeltaX = elementCenterX - parentCenterX;
+            scrollDeltaY = elementCenterY - parentCenterY;
         }
-        else if (clientRect.bottom > parentRect.bottom) {
-            scrollDeltaY = clientRect.bottom - parentRect.bottom + this.offsetY;
-        }
-        if (clientRect.left < parentRect.left) {
-            scrollDeltaX = clientRect.left - parentRect.left - this.offsetX;
-        }
-        else if (clientRect.right > parentRect.right) {
-            scrollDeltaX = clientRect.right - parentRect.right + this.offsetX;
+        else {
+            if (clientRect.top < parentRect.top) {
+                scrollDeltaY = clientRect.top - parentRect.top - this.offsetY;
+            }
+            else if (clientRect.bottom > parentRect.bottom) {
+                scrollDeltaY = clientRect.bottom - parentRect.bottom + this.offsetY;
+            }
+            if (clientRect.left < parentRect.left) {
+                scrollDeltaX = clientRect.left - parentRect.left - this.offsetX;
+            }
+            else if (clientRect.right > parentRect.right) {
+                scrollDeltaX = clientRect.right - parentRect.right + this.offsetX;
+            }
         }
         if (scrollDeltaX === 0 && scrollDeltaY === 0) {
             return;
         }
         const x = startX + scrollDeltaX;
         const y = startY + scrollDeltaY;
+        if (CSS.supports('scroll-behavior', 'smooth')) {
+            if (this.IsBody(scrollableParent)) {
+                scrollTo({
+                    top: y,
+                    left: x,
+                    behavior: 'smooth'
+                });
+            }
+            else {
+                scrollableParent.scrollTo({
+                    top: y,
+                    left: x,
+                    behavior: 'smooth'
+                });
+            }
+            return;
+        }
         const startTime = this.Now();
         this.Step({
             scrollableParent,
